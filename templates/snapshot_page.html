@@ -20,47 +20,61 @@
     </div>
   </div>
 
-  <script>
-    document.getElementById('snapshot-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-      const formData = new FormData(this);
+ <script>
+  document.getElementById('snapshot-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
 
-      fetch('/snapshot', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data.status);
+    fetch('/snapshot', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data.status);
+      if (data.status) {
         checkFileStatus();
-      })
-      .catch(error => console.error('Error:', error));
-    });
+      } else if (data.error) {
+        console.error('Error:', data.error);
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  });
 
-    function checkFileStatus() {
-      const downloadDiv = document.querySelector('.download-file');
+  function checkFileStatus() {
+    const downloadDiv = document.querySelector('.download-file');
 
-      const interval = setInterval(() => {
-        fetch('/status')
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === 'ready') {
-              clearInterval(interval);
-              const link = document.createElement('a');
-              link.href = '/download';
-              link.textContent = 'Download csv';
-              link.classList.add('bg-[#343FF5]', 'text-white', 'font-[inter]', 'p-3', 'rounded-md', 'text-xl', 'font-bold');
-              link.addEventListener('click', () => {
-                setTimeout(() => {
-                  downloadDiv.innerHTML = ''; // Remove the link after clicking
-                }, 100);
-              });
-              downloadDiv.appendChild(link);
-            }
-          })
-          .catch(error => console.error('Error:', error));
-      }, 5000); // Poll every 5 seconds
-    }
-  </script>
+    const interval = setInterval(() => {
+      fetch('/status')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'ready') {
+            clearInterval(interval);
+            const link = document.createElement('a');
+            link.href = '/download';
+            link.textContent = 'Download csv';
+            link.classList.add('bg-[#343FF5]', 'text-white', 'font-[inter]', 'p-3', 'rounded-md', 'text-xl', 'font-bold');
+            link.addEventListener('click', () => {
+              setTimeout(() => {
+                downloadDiv.innerHTML = ''; // Remove the link after clicking
+              }, 100);
+            });
+            downloadDiv.appendChild(link);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }, 5000); // Poll every 5 seconds
+  }
+</script>
 </body>
 </html>
