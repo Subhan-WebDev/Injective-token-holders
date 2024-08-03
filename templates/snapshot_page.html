@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <title>Injective SnapShots</title>
+</head>
+<body>
+  <div class="bg-[#EAEAEA] w-full h-[100vh] flex justify-center">
+    <div class="div w-[85%] md:p-24 py-12 px-9 h-[30rem]">
+        <h1 class="text-3xl font-bold text-[#343FF5] my-6">Take SnapShots</h1>
+        <form id="snapshot-form" action="/snapshot" method="post">
+          <input type="text" id="token_address" name="token_address" class="xl:w-1/2 md:w-2/3 w-full my-4 rounded-md outline-none p-3 block focus:shadow-md shadow-[#adadad5b]">
+          <input type="submit" value="Snapshot" class="bg-[#343FF5] w-32 text-white font-[Inter] p-1 text-xl font-bold rounded-md">
+        </form>
+        <div class="download-file mt-4"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('snapshot-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+
+      fetch('/snapshot', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data.status);
+        checkFileStatus();
+      })
+      .catch(error => console.error('Error:', error));
+    });
+
+    function checkFileStatus() {
+      const downloadDiv = document.querySelector('.download-file');
+
+      const interval = setInterval(() => {
+        fetch('/status')
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'ready') {
+              clearInterval(interval);
+              const link = document.createElement('a');
+              link.href = '/download';
+              link.textContent = 'Download csv';
+              link.classList.add('bg-[#343FF5]', 'text-white', 'font-[inter]', 'p-3', 'rounded-md', 'text-xl', 'font-bold');
+              link.addEventListener('click', () => {
+                setTimeout(() => {
+                  downloadDiv.innerHTML = ''; // Remove the link after clicking
+                }, 100);
+              });
+              downloadDiv.appendChild(link);
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }, 5000); // Poll every 5 seconds
+    }
+  </script>
+</body>
+</html>

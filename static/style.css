@@ -1,0 +1,16 @@
+.section{
+    background-image: url(./image\ 2.png);
+}
+.section::before{
+    content: '';
+    z-index: 10;
+    background: #EAEAEA;
+}
+/* .bg-img{
+    position: relative;
+    background: #EAEAEA;
+    width: 100%;
+    display: flex;
+    z-index: 13;
+    height: 100%;
+} */
