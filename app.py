@@ -20,10 +20,13 @@ def snapshot_page():
     return render_template('snapshot_page.html')
 
 @app.route('/snapshot', methods=['POST'])
-def snapshot():
-    token_address = request.form['token_address']
-    asyncio.run(main(token_address))
-    return jsonify({"status": "Data fetching initiated. Check your CSV file status."})
+async def snapshot():
+    try:
+        token_address = request.form['token_address']
+        await main(token_address)
+        return jsonify({"status": "Data fetching initiated. Check your CSV file status."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/status')
 def check_status():
@@ -34,7 +37,10 @@ def check_status():
 
 @app.route('/download')
 def download_file():
-    return send_file('TokenHolder.csv', as_attachment=True)
+    if os.path.exists('TokenHolder.csv'):
+        return send_file('TokenHolder.csv', as_attachment=True)
+    else:
+        return jsonify({"error": "File not found"}), 404
 
 async def fetch_all_zigcoin_owners(denom):
     network = Network.mainnet()
